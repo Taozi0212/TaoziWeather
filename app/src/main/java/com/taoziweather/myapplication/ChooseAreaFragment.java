@@ -1,6 +1,10 @@
+package com.taoziweather.myapplication;
+
 import android.app.ProgressDialog;
+
 import android.content.Intent;
 import android.os.Bundle;
+
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +19,7 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
-import com.taoziweather.myapplication.R;
+
 import com.taoziweather.myapplication.db.City;
 import com.taoziweather.myapplication.db.County;
 import com.taoziweather.myapplication.db.Province;
@@ -34,7 +38,7 @@ import okhttp3.Response;
 
 public class ChooseAreaFragment extends Fragment {
 
-    private static final String TAG = "ChooseAreaFragment";
+    //private static final String TAG = "com.taoziweather.myapplication.ChooseAreaFragment";
 
     public static final int LEVEL_PROVINCE = 0;
 
@@ -109,6 +113,12 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if (currentLevel ==LEVEL_COUNTY){
+                    String weatherId=countyList.get(position).getWeatherId();
+                    Intent intent=new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -137,6 +147,7 @@ public class ChooseAreaFragment extends Fragment {
             for (Province province : provinceList) {
                 dataList.add(province.getProvinceName());
             }
+            System.out.println(dataList.size());
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
@@ -196,13 +207,19 @@ public class ChooseAreaFragment extends Fragment {
      */
     private void queryFromServer(String address, final String type) {
         showProgressDialog();
+        //Log.i("hh","开始请求:"+address);
+
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+
                 String responseText = response.body().string();
                 boolean result = false;
+                //Log.i("hh",responseText);
                 if ("province".equals(type)) {
+                    //Log.i("hh",responseText);
                     result = Utility.handleProvinceResponse(responseText);
+                    //Log.i("hh",String.valueOf(result));
                 } else if ("city".equals(type)) {
                     result = Utility.handleCityResponse(responseText, selectedProvince.getId());
                 } else if ("county".equals(type)) {
@@ -227,6 +244,7 @@ public class ChooseAreaFragment extends Fragment {
 
             @Override
             public void onFailure(Call call, IOException e) {
+                //Log.i("hh","失败！");
                 // 通过runOnUiThread()方法回到主线程处理逻辑
                 getActivity().runOnUiThread(new Runnable() {
                     @Override

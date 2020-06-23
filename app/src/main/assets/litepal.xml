@@ -6,9 +6,9 @@
     <version value="1" />
 
     <list>
-        <mapping class="com.TaoziWeather.android.db.Province" />
-        <mapping class="com.TaoziWeather.android.db.City" />
-        <mapping class="com.TaoziWeather.android.db.County" />
+        <mapping class="com.taoziweather.myapplication.db.Province" />
+        <mapping class="com.taoziweather.myapplication.db.City" />
+        <mapping class="com.taoziweather.myapplication.db.County" />
     </list>
 
 </litepal>
