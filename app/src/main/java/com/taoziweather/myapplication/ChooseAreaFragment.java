@@ -46,17 +46,17 @@ public class ChooseAreaFragment extends Fragment {
 
     public static final int LEVEL_COUNTY = 2;
 
-    private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;//进度条  加载信息时会出现
 
-    private TextView titleText;
+    private TextView titleText;//标题
 
-    private Button backButton;
+    private Button backButton;//返回键
 
-    private ListView listView;
+    private ListView listView;//省市县列表
 
-    private ArrayAdapter<String> adapter;
+    private ArrayAdapter<String> adapter;//适配器
 
-    private List<String> dataList = new ArrayList<>();
+    private List<String> dataList = new ArrayList<>();//泛型
 
     /**
      * 省列表
@@ -92,11 +92,14 @@ public class ChooseAreaFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        //获取控件实例
         View view = inflater.inflate(R.layout.choose_area, container, false);
         titleText =  view.findViewById(R.id.title_text);
         backButton = view.findViewById(R.id.back_button);
         listView =  view.findViewById(R.id.list_view);
+        //初始化ArrayAdapter
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
+        //adapter设置为ListView的适配器
         listView.setAdapter(adapter);
         return view;
     }
@@ -104,12 +107,13 @@ public class ChooseAreaFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        //ListView的点击事件
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (currentLevel == LEVEL_PROVINCE) {
+                if (currentLevel == LEVEL_PROVINCE) { //省级的列表
                     selectedProvince = provinceList.get(position);
-                    queryCities();
+                    queryCities(); //查找城市
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
@@ -130,6 +134,7 @@ public class ChooseAreaFragment extends Fragment {
                 }
             }
         });
+        //button点击事件
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,16 +145,18 @@ public class ChooseAreaFragment extends Fragment {
                 }
             }
         });
-        queryProvinces();
+        queryProvinces();//加载省级数据
     }
 
     /**
      * 查询全国所有的省，优先从数据库查询，如果没有查询到再去服务器上查询。
      */
     private void queryProvinces() {
-        titleText.setText("中国");
-        backButton.setVisibility(View.GONE);
+        titleText.setText("中国");//标题
+        backButton.setVisibility(View.GONE);//当处于省级列表，返回键隐藏
+        //数据库读取数据
         provinceList = DataSupport.findAll(Province.class);
+        //如果读到数据。则会显示到界面上
         if (provinceList.size() > 0) {
             dataList.clear();
             for (Province province : provinceList) {
@@ -160,6 +167,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
+            //如果没有读到，会请求一个地址，调用queryFromServer()方法从服务器上查询数据
             String address = "http://guolin.tech/api/china";
             queryFromServer(address, "province");
         }
@@ -170,7 +178,7 @@ public class ChooseAreaFragment extends Fragment {
      */
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
-        backButton.setVisibility(View.VISIBLE);
+        backButton.setVisibility(View.VISIBLE);//当列表显示市级，返回键显示出来
         cityList = DataSupport.where("provinceid = ?", String.valueOf(selectedProvince.getId())).find(City.class);
         if (cityList.size() > 0) {
             dataList.clear();
@@ -192,7 +200,7 @@ public class ChooseAreaFragment extends Fragment {
      */
     private void queryCounties() {
         titleText.setText(selectedCity.getCityName());
-        backButton.setVisibility(View.VISIBLE);
+        backButton.setVisibility(View.VISIBLE);//当列表显示县级，返回键显示出来
         countyList = DataSupport.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
         if (countyList.size() > 0) {
             dataList.clear();
@@ -225,6 +233,7 @@ public class ChooseAreaFragment extends Fragment {
                 boolean result = false;
                 //Log.i("hh",responseText);
                 if ("province".equals(type)) {
+                    //解析和处理服务器返回数据，并存储到数据中
                     //Log.i("hh",responseText);
                     result = Utility.handleProvinceResponse(responseText);
                     //Log.i("hh",String.valueOf(result));
@@ -234,11 +243,14 @@ public class ChooseAreaFragment extends Fragment {
                     result = Utility.handleCountyResponse(responseText, selectedCity.getId());
                 }
                 if (result) {
+                    //由于query方法用到UI操作，必须在主线程中调用
+                    //借助runOnUiThread()方法实现从子线程切换到主线程
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             closeProgressDialog();
                             if ("province".equals(type)) {
+                                //数据库已经存在数据，调用queryProvinces直接将数据显示到界面上
                                 queryProvinces();
                             } else if ("city".equals(type)) {
                                 queryCities();

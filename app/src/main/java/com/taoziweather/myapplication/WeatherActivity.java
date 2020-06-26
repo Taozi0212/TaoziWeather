@@ -1,6 +1,7 @@
 package com.taoziweather.myapplication;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 
 import android.graphics.Color;
@@ -25,6 +26,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.taoziweather.myapplication.gson.Forecast;
 import com.taoziweather.myapplication.gson.Weather;
+import com.taoziweather.myapplication.service.AutoUpdateService;
 import com.taoziweather.myapplication.util.HttpUtil;
 import com.taoziweather.myapplication.util.Utility;
 
@@ -64,6 +66,7 @@ public class WeatherActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         setContentView(R.layout.activity_weather);
+        //初始化控件
         bingPicImg=findViewById(R.id.bing_pic_img);
         weatherLayout = findViewById(R.id.weather_layout);
         titleCity =  findViewById(R.id.title_city);
@@ -193,6 +196,8 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
     private void loadBingPic(){
